@@ -39,7 +39,7 @@ public class DataGeneratorAgent extends ManagedAgent {
                 })
         );
         addRecurringBehavior(
-                () -> Duration.ofMillis(rng.nextLong((long)(20000 * TIME_SCALING), (long)(80000 * TIME_SCALING))),
+                () -> Duration.ofMillis(rng.nextLong((long) (20000 * TIME_SCALING), (long) (80000 * TIME_SCALING))),
                 () -> {
                     final boolean shouldCreateNewClient = rng.nextBoolean();
 
@@ -66,7 +66,7 @@ public class DataGeneratorAgent extends ManagedAgent {
                     }
                 });
         addRecurringBehavior(
-                () -> Duration.ofMillis(rng.nextLong((long)(30000 * TIME_SCALING), (long)(180000 * TIME_SCALING))),
+                () -> Duration.ofMillis(rng.nextLong((long) (30000 * TIME_SCALING), (long) (180000 * TIME_SCALING))),
                 () -> {
                     final boolean shouldClientLeave = rng.nextBoolean();
 

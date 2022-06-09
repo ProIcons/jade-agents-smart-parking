@@ -29,6 +29,9 @@ public class Car implements Serializable {
     private Integer batteryCapacity;
     @Getter(AccessLevel.NONE)
     private Double batteryLevel;
+    @Singular
+    @ToString.Exclude
+    private List<byte[]> carImages;
 
     public double getRefuelingOrRechargingRemaining() {
         if (type == CarType.ELECTRIC) {
@@ -39,8 +42,4 @@ public class Car implements Serializable {
             return 0;
         }
     }
-
-    @Singular
-    @ToString.Exclude
-    private List<byte[]> carImages;
 }

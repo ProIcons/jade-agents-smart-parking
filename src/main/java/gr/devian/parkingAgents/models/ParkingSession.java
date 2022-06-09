@@ -2,7 +2,6 @@ package gr.devian.parkingAgents.models;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.Singular;
 import lombok.ToString;
 
 import java.io.Serializable;

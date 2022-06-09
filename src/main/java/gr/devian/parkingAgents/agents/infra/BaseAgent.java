@@ -23,6 +23,8 @@ import static gr.devian.parkingAgents.utils.TimeUtils.TIME_SCALING;
 
 @Slf4j
 public abstract class BaseAgent extends Agent {
+    protected final ThreadLocalRandom rng = ThreadLocalRandom.current();
+
     protected <T> Consumer<ACLMessage> Handle(final Class<T> payloadClass, final BiConsumer<ACLMessage, T> payloadConsumer) {
         return message -> {
             if (message.getOntology().equals(payloadClass.getCanonicalName())) {
@@ -30,8 +32,6 @@ public abstract class BaseAgent extends Agent {
             }
         };
     }
-
-    protected final ThreadLocalRandom rng = ThreadLocalRandom.current();
 
     protected final void sleep(final long ms) {
         try {
@@ -79,7 +79,7 @@ public abstract class BaseAgent extends Agent {
     }
 
     protected final void sleepRandom(final int lower, final int upper) {
-        sleep(rng.nextInt((int)(lower * TIME_SCALING), (int)(upper * TIME_SCALING)));
+        sleep(rng.nextInt((int) (lower * TIME_SCALING), (int) (upper * TIME_SCALING)));
     }
 
     protected abstract void setupInternal();

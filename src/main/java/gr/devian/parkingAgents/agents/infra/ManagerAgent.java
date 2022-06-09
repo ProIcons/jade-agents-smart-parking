@@ -5,8 +5,6 @@ import gr.devian.parkingAgents.models.responses.BaseResponse;
 import gr.devian.parkingAgents.utils.MessageUtils;
 import jade.lang.acl.ACLMessage;
 
-import java.util.UUID;
-
 public abstract class ManagerAgent extends BaseAgent {
 
 

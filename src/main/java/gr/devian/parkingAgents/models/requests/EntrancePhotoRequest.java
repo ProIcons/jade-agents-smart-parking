@@ -1,6 +1,9 @@
 package gr.devian.parkingAgents.models.requests;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)

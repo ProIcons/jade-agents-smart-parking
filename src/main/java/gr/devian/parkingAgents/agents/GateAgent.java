@@ -44,9 +44,9 @@ public class GateAgent extends ManagedAgent {
                     );
 
                     sendRequestToCoordinator(CarExitingRequest
-                            .builder()
-                            .parkingSessionId(event.getParkSessionId())
-                            .build(),
+                                    .builder()
+                                    .parkingSessionId(event.getParkSessionId())
+                                    .build(),
                             uuid);
                 }),
                 Handle(CarEnteringResponse.class, (receivedMessage, response) -> {
