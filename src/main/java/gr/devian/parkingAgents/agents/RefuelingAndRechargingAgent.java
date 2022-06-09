@@ -15,18 +15,18 @@ public class RefuelingAndRechargingAgent extends ManagedAgent {
     protected void setupInternal() {
         addInitBehavior(this::announceToCoordinator);
         addCyclicBehavior(
-                Handle(RefuelingOrRechargingRequest.class, this::handleRefuelingOrRechargingRequest)
+            Handle(RefuelingOrRechargingRequest.class, this::handleRefuelingOrRechargingRequest)
         );
     }
 
     private void handleRefuelingOrRechargingRequest(final ACLMessage receivedMessage, final RefuelingOrRechargingRequest request) {
         sleepRandom(10000, 90000);
         sendResponseToCoordinator(
-                receivedMessage,
-                RefuelingOrRechargingResponse
-                        .builder()
-                        .status(TaskStatus.COMPLETED)
-                        .build()
+            receivedMessage,
+            RefuelingOrRechargingResponse
+                .builder()
+                .status(TaskStatus.COMPLETED)
+                .build()
         );
     }
 

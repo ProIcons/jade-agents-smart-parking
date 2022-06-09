@@ -1,7 +1,6 @@
 package gr.devian.parkingAgents.agents.infra;
 
-import gr.devian.parkingAgents.agents.CoordinatorAgent;
-import gr.devian.parkingAgents.models.responses.AcknowledgeResponse;
+import gr.devian.parkingAgents.models.requests.BaseRequest;
 import gr.devian.parkingAgents.utils.MessageUtils;
 import io.vavr.collection.List;
 import jade.core.Agent;
@@ -41,6 +40,7 @@ public abstract class BaseAgent extends Agent {
         }
     }
 
+    @SafeVarargs
     protected final void addCyclicBehavior(final Consumer<ACLMessage>... consumers) {
         addBehaviour(new CyclicBehaviour() {
             @Override
@@ -52,6 +52,15 @@ public abstract class BaseAgent extends Agent {
                 } else {
                     block();
                 }
+            }
+        });
+    }
+
+    protected final void addTimedBehavior(final Duration time, final Runnable runnable) {
+        addBehaviour(new WakerBehaviour(this, time.toMillis()) {
+            @Override
+            protected void onWake() {
+                runnable.run();
             }
         });
     }
@@ -78,6 +87,28 @@ public abstract class BaseAgent extends Agent {
         });
     }
 
+
+    protected <T extends BaseRequest> void sendRequest(final T payload, final ACLMessage ref, final Class<? extends ManagedAgent> agentClass) {
+        final ACLMessage aclMessage = MessageUtils.createMessage(payload, ACLMessage.REQUEST, ref.getConversationId(), agentClass);
+        send(aclMessage);
+    }
+
+
+    protected <T extends BaseRequest> void sendRequest(final T payload, final ACLMessage ref, final String agent) {
+        final ACLMessage aclMessage = MessageUtils.createMessage(payload, ACLMessage.REQUEST, ref.getConversationId(), agent);
+        send(aclMessage);
+    }
+
+    protected <T extends BaseRequest> void sendRequest(final T payload, final String ref, final Class<? extends ManagedAgent> agentClass) {
+        final ACLMessage aclMessage = MessageUtils.createMessage(payload, ACLMessage.REQUEST, ref, agentClass);
+        send(aclMessage);
+    }
+
+    protected <T extends BaseRequest> void sendRequest(final T payload, final String ref, final String agent) {
+        final ACLMessage aclMessage = MessageUtils.createMessage(payload, ACLMessage.REQUEST, ref, agent);
+        send(aclMessage);
+    }
+
     protected final void sleepRandom(final int lower, final int upper) {
         sleep(rng.nextInt((int) (lower * TIME_SCALING), (int) (upper * TIME_SCALING)));
     }
@@ -99,18 +130,6 @@ public abstract class BaseAgent extends Agent {
     protected final void takeDown() {
         log.info("Agent {}: {}.", getLocalName(), getAgentState());
     }
-
-
-    protected void acknowledge(final ACLMessage message) {
-        final ACLMessage aclMessage = MessageUtils.createMessage(
-                new AcknowledgeResponse(),
-                ACLMessage.INFORM,
-                message.getConversationId(),
-                CoordinatorAgent.class
-        );
-        send(aclMessage);
-    }
-
 
     private class RecurringBehavior extends WakerBehaviour {
         private final Supplier<Duration> intervalSupplier;

@@ -19,26 +19,26 @@ public class ParkingAgent extends ManagedAgent {
     protected void setupInternal() {
         addInitBehavior(this::announceToCoordinator);
         addCyclicBehavior(
-                Handle(ParkCarRequest.class, this::handleParkCarRequest),
-                Handle(UnparkCarRequest.class, this::handleUnparkCarRequest)
+            Handle(ParkCarRequest.class, this::handleParkCarRequest),
+            Handle(UnparkCarRequest.class, this::handleUnparkCarRequest)
         );
     }
 
     private void handleParkCarRequest(final ACLMessage receivedMessage, final ParkCarRequest request) {
         sleepRandom(20000, 180000);
         final ParkingSession session = request.getParkingSession()
-                .toBuilder()
-                .car(request.getParkingSession().getCar())
-                .parkingSpot(request.getParkingSession().getParkingSpot())
-                .parkedSince(LocalDateTime.now())
-                .build();
+                                              .toBuilder()
+                                              .car(request.getParkingSession().getCar())
+                                              .parkingSpot(request.getParkingSession().getParkingSpot())
+                                              .parkedSince(LocalDateTime.now())
+                                              .build();
 
         sendResponseToCoordinator(
-                receivedMessage,
-                ParkCarResponse
-                        .builder()
-                        .parkingSession(session)
-                        .build()
+            receivedMessage,
+            ParkCarResponse
+                .builder()
+                .parkingSession(session)
+                .build()
         );
     }
 
@@ -46,11 +46,11 @@ public class ParkingAgent extends ManagedAgent {
         sleepRandom(20000, 180000);
 
         sendResponseToCoordinator(
-                receivedMessage,
-                UnparkCarResponse
-                        .builder()
-                        .parkingSession(request.getParkingSession())
-                        .build()
+            receivedMessage,
+            UnparkCarResponse
+                .builder()
+                .parkingSession(request.getParkingSession())
+                .build()
         );
     }
 

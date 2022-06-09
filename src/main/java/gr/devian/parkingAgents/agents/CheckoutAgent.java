@@ -13,7 +13,7 @@ public class CheckoutAgent extends ManagedAgent {
     @Override
     protected void setupInternal() {
         addCyclicBehavior(
-                Handle(CheckoutRequest.class, this::handleCheckoutRequest)
+            Handle(CheckoutRequest.class, this::handleCheckoutRequest)
         );
     }
 
@@ -21,12 +21,12 @@ public class CheckoutAgent extends ManagedAgent {
         sleepRandom(1000, 2000);
 
         sendResponseToCoordinator(
-                receivedMessage,
-                CheckoutResponse
-                        .builder()
-                        .amount(request.getAmount())
-                        .status(CheckoutStatus.CHECKED_OUT)
-                        .build()
+            receivedMessage,
+            CheckoutResponse
+                .builder()
+                .amount(request.getAmount())
+                .status(CheckoutStatus.CHECKED_OUT)
+                .build()
         );
     }
 }

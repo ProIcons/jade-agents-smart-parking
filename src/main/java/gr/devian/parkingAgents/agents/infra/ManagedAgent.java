@@ -27,4 +27,10 @@ public abstract class ManagedAgent extends BaseAgent {
         final ACLMessage aclMessage = MessageUtils.createMessage(payload, ACLMessage.INFORM, originalMessage.getConversationId(), CoordinatorAgent.class);
         send(aclMessage);
     }
+
+    protected <T extends BaseResponse> void sendResponseToSender(final ACLMessage originalMessage, final T payload) {
+        final ACLMessage aclMessage = MessageUtils.createMessage(payload, ACLMessage.INFORM, originalMessage.getConversationId(),
+            originalMessage.getSender().getLocalName());
+        send(aclMessage);
+    }
 }

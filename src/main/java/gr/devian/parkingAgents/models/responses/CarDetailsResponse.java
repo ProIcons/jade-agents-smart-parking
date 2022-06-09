@@ -7,16 +7,19 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.awt.*;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @Builder(toBuilder = true)
-public class ModelAndBrandDetectionResponse extends BaseResponse {
-    private String model;
+public class CarDetailsResponse extends BaseResponse {
+    private UUID id;
+    private String licensePlate;
     private String brand;
+    private String model;
     private Color color;
-    private Integer capacity;
-    private double level;
-    private CarType type;
+    private CarType carType;
+    private Integer fuelCapacity;
+    private double fuelLevel;
 }

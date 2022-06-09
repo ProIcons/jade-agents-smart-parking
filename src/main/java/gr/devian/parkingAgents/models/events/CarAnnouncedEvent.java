@@ -12,9 +12,10 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @Builder(toBuilder = true)
-public class CarArrivedEvent extends BaseEvent {
+public class CarAnnouncedEvent extends BaseEvent {
     private Client client;
     private UUID clientId;
+    private UUID carId;
     private boolean requestWashing;
     private boolean requestRefuelingOrRecharging;
 }

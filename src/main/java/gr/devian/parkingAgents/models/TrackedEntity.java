@@ -17,6 +17,7 @@ public class TrackedEntity implements Serializable, Comparable<TrackedEntity> {
     private byte[] carPhoto;
     private ParkingSession session;
     private UUID parkingSessionId;
+    private UUID carId;
 
     @Override
     public boolean equals(final Object o) {

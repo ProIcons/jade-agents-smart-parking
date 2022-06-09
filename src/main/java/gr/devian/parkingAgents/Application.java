@@ -1,5 +1,6 @@
 package gr.devian.parkingAgents;
 
+import gr.devian.parkingAgents.agents.CarAgent;
 import gr.devian.parkingAgents.agents.ParkingAgent;
 import gr.devian.parkingAgents.agents.RefuelingAndRechargingAgent;
 import gr.devian.parkingAgents.agents.WashingAgent;
@@ -29,9 +30,10 @@ public class Application {
         System.setProperty("log4j.shutdownHookEnabled", Boolean.toString(false));
 
         final Map<Class<? extends Agent>, Integer> agentInstancesMap = HashMap.of(
-                ParkingAgent.class, 8,
-                WashingAgent.class, 4,
-                RefuelingAndRechargingAgent.class, 4
+            ParkingAgent.class, 8,
+            WashingAgent.class, 4,
+            RefuelingAndRechargingAgent.class, 4,
+            CarAgent.class, 0
         );
 
         LogManager.getLogManager().reset();
@@ -47,16 +49,16 @@ public class Application {
 
     private static String createAgents(final Map<Class<? extends Agent>, Integer> agentInstancesMap) {
         return List.ofAll(REFLECTIONS.getSubTypesOf(Agent.class))
-                .filter(agentClass -> agentClass.getCanonicalName().startsWith(PACKAGE_NAME))
-                .filter(agentClass -> !Modifier.isAbstract(agentClass.getModifiers()))
-                .map(agentClass -> createAgent(agentClass, agentInstancesMap.getOrElse(agentClass, 1)))
-                .mkString("; ");
+                   .filter(agentClass -> agentClass.getCanonicalName().startsWith(PACKAGE_NAME))
+                   .filter(agentClass -> !Modifier.isAbstract(agentClass.getModifiers()))
+                   .map(agentClass -> createAgent(agentClass, agentInstancesMap.getOrElse(agentClass, 1)))
+                   .mkString("; ");
     }
 
     private static String createAgent(final Class<? extends Agent> agentClass, final int instances) {
         return IntStream.range(0, instances).mapToObj(instanceIndex -> instances <= 1
-                        ? String.format("%s:%s", agentClass.getSimpleName(), agentClass.getCanonicalName())
-                        : String.format("%s-%d:%s", agentClass.getSimpleName(), instanceIndex, agentClass.getCanonicalName()))
-                .collect(Collectors.joining("; "));
+                            ? String.format("%s:%s", agentClass.getSimpleName(), agentClass.getCanonicalName())
+                            : String.format("%s-%d:%s", agentClass.getSimpleName(), instanceIndex, agentClass.getCanonicalName()))
+                        .collect(Collectors.joining("; "));
     }
 }

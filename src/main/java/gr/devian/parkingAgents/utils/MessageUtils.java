@@ -60,12 +60,4 @@ public final class MessageUtils {
             throw new RuntimeException(e);
         }
     }
-
-    public static Class<?> getOntology(final ACLMessage message) {
-        try {
-            return Class.forName(message.getOntology());
-        } catch (final ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

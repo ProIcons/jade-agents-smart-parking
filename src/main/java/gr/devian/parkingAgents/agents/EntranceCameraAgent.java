@@ -12,7 +12,7 @@ public class EntranceCameraAgent extends ManagedAgent {
     @Override
     protected void setupInternal() {
         addCyclicBehavior(
-                Handle(EntrancePhotoRequest.class, this::handleEntrancePhotoRequest)
+            Handle(EntrancePhotoRequest.class, this::handleEntrancePhotoRequest)
         );
     }
 
@@ -27,11 +27,11 @@ public class EntranceCameraAgent extends ManagedAgent {
         sleepRandom(1000, 2000);
 
         sendResponseToCoordinator(
-                receivedMessage,
-                EntrancePhotoResponse
-                        .builder()
-                        .photo(getPhoto())
-                        .build()
+            receivedMessage,
+            EntrancePhotoResponse
+                .builder()
+                .photo(getPhoto())
+                .build()
         );
     }
 }

@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import static gr.devian.parkingAgents.utils.TimeUtils.TIME_SCALING;
@@ -41,27 +42,27 @@ public class ParkingPersistenceAgent extends ManagedAgent {
     @Override
     protected void setupInternal() {
         addCyclicBehavior(
-                Handle(RegisterNewClientRequest.class, this::handleRegisterNewClientRequest),
-                Handle(HasFreeParkingSpacesRequest.class, this::handleHasFreeParkingSpaceRequest),
-                Handle(GetFreeParkingSpaceRequest.class, this::handleGetFreeParkingSpaceRequest),
-                Handle(ReleaseParkingSpaceRequest.class, this::handleReleaseParkingSpaceRequest),
-                Handle(UpdateParkingSpaceRequest.class, this::handleUpdateParkingSpaceRequest),
-                Handle(UpdateTaskStatusRequest.class, this::handleUpdateTaskStatusRequest),
-                Handle(RegisterCarIfNotExistsRequest.class, this::handleRegisterCarIfNotExistsRequest),
-                Handle(GetCarFromRegistryRequest.class, this::handleGetCarFromRegistryRequest),
-                Handle(GetParkingSessionRequest.class, this::handleGetParkedCarByIdRequest),
-                Handle(GetClientFromRegistryRequest.class, this::handleGetClientFromRegistryRequest),
-                Handle(FinalizeParkingExpensesRequest.class, this::handleFinalizeParkingExpensesRequest)
+            Handle(RegisterNewClientRequest.class, this::handleRegisterNewClientRequest),
+            Handle(HasFreeParkingSpacesRequest.class, this::handleHasFreeParkingSpaceRequest),
+            Handle(GetFreeParkingSpaceRequest.class, this::handleGetFreeParkingSpaceRequest),
+            Handle(ReleaseParkingSpaceRequest.class, this::handleReleaseParkingSpaceRequest),
+            Handle(UpdateParkingSpaceRequest.class, this::handleUpdateParkingSpaceRequest),
+            Handle(UpdateTaskStatusRequest.class, this::handleUpdateTaskStatusRequest),
+            Handle(RegisterCarIfNotExistsRequest.class, this::handleRegisterCarIfNotExistsRequest),
+
+            Handle(GetParkingSessionRequest.class, this::handleGetParkedCarByIdRequest),
+            Handle(GetClientFromRegistryRequest.class, this::handleGetClientFromRegistryRequest),
+            Handle(FinalizeParkingExpensesRequest.class, this::handleFinalizeParkingExpensesRequest)
         );
     }
 
     private void handleHasFreeParkingSpaceRequest(final ACLMessage receivedMessage, final HasFreeParkingSpacesRequest request) {
         sendResponseToCoordinator(
-                receivedMessage,
-                HasFreeParkingSpacesResponse
-                        .builder()
-                        .state(hasFreeParkingSpace())
-                        .build());
+            receivedMessage,
+            HasFreeParkingSpacesResponse
+                .builder()
+                .state(hasFreeParkingSpace())
+                .build());
     }
 
     private void handleGetFreeParkingSpaceRequest(final ACLMessage receivedMessage, final GetFreeParkingSpaceRequest request) {
@@ -69,31 +70,31 @@ public class ParkingPersistenceAgent extends ManagedAgent {
         parkSessionMap.put(parkingSpace, null);
 
         sendResponseToCoordinator(
-                receivedMessage,
-                GetFreeParkingSpaceResponse
-                        .builder()
-                        .parkingSpace(parkingSpace)
-                        .build());
+            receivedMessage,
+            GetFreeParkingSpaceResponse
+                .builder()
+                .parkingSpace(parkingSpace)
+                .build());
     }
 
     private void handleReleaseParkingSpaceRequest(final ACLMessage receivedMessage, final ReleaseParkingSpaceRequest request) {
         parkSessionMap.remove(request.getParkingSpace());
 
         sendResponseToCoordinator(
-                receivedMessage,
-                ReleaseParkingSpaceResponse
-                        .builder()
-                        .build());
+            receivedMessage,
+            ReleaseParkingSpaceResponse
+                .builder()
+                .build());
     }
 
     private void handleUpdateParkingSpaceRequest(final ACLMessage receivedMessage, final UpdateParkingSpaceRequest request) {
         parkSessionMap.put(request.getParkingSpace(), request.getSession());
 
         sendResponseToCoordinator(
-                receivedMessage,
-                UpdateParkingSpaceResponse
-                        .builder()
-                        .build());
+            receivedMessage,
+            UpdateParkingSpaceResponse
+                .builder()
+                .build());
     }
 
     private void handleRegisterCarIfNotExistsRequest(final ACLMessage receivedMessage, final RegisterCarIfNotExistsRequest request) {
@@ -105,81 +106,38 @@ public class ParkingPersistenceAgent extends ManagedAgent {
 
         final Client client = clientOptional.get();
 
-        final Optional<Car> car = io.vavr.collection.List.ofAll(client.getCars())
-                .find(targetCar -> targetCar.getLicensePlate().equals(request.getCar().getLicensePlate()))
-                .toJavaOptional();
+        final Optional<Car> carOptional = getCarByLicensePlate(request.getCar().getLicensePlate());
 
-        if (car.isPresent()) {
+        if (carOptional.isPresent()) {
+            final Car car = carOptional.get();
+            car.setCarImages(io.vavr.collection.List.of(car.getCarImages(), request.getCar().getCarImages())
+                                                    .flatMap(Function.identity())
+                                                    .toJavaList())
+               .setBatteryCapacity(request.getCar().getBatteryCapacity())
+               .setBatteryLevel(request.getCar().getBatteryLevel())
+               .setFuelLevel(request.getCar().getFuelLevel())
+               .setFuelTankCapacity(request.getCar().getFuelTankCapacity())
+               .setColor(request.getCar().getColor());
+
             sendResponseToCoordinator(
-                    receivedMessage,
-                    RegisterCarIfNotExistsResponse
-                            .builder()
-                            .carRegistrationState(CarRegistrationState.EXISTED)
-                            .car(car.get())
-                            .build());
+                receivedMessage,
+                RegisterCarIfNotExistsResponse
+                    .builder()
+                    .carRegistrationState(CarRegistrationState.EXISTED)
+                    .car(car)
+                    .build());
         } else {
             client.getCars()
-                    .add(request.getCar());
+                  .add(request.getCar());
             carDatabase.put(request.getCar().getLicensePlate(), request.getCar());
 
             sendResponseToCoordinator(
-                    receivedMessage,
-                    RegisterCarIfNotExistsResponse
-                            .builder()
-                            .carRegistrationState(CarRegistrationState.REGISTERED)
-                            .car(request.getCar())
-                            .build());
-        }
-    }
-
-    private void handleGetCarFromRegistryRequest(final ACLMessage receivedMessage, final GetCarFromRegistryRequest request) {
-        final Optional<Client> clientOptional = getClient(request.getClient());
-
-        if (clientOptional.isEmpty()) {
-            throw new IllegalStateException();
-        }
-
-        final Client client = clientOptional.get();
-
-        final Optional<Car> car = io.vavr.collection.List.ofAll(client.getCars())
-                .find(targetCar -> targetCar.getLicensePlate().equals(request.getLicensePlate()))
-                .toJavaOptional();
-
-        if (car.isPresent()) {
-            sendResponseToCoordinator(
-                    receivedMessage,
-                    GetCarFromRegistryResponse
-                            .builder()
-                            .car(car.get())
-                            .exists(true)
-                            .build()
-            );
-        } else {
-            final Optional<Car> carOptional = getCarByLicensePlate(request.getLicensePlate());
-            if (carOptional.isPresent()) {
-                final Car targetCar = carOptional.get();
-
-                client.getCars()
-                        .add(targetCar);
-
-                sendResponseToCoordinator(
-                        receivedMessage,
-                        GetCarFromRegistryResponse
-                                .builder()
-                                .exists(true)
-                                .car(targetCar)
-                                .build()
-                );
-            } else {
-                sendResponseToCoordinator(
-                        receivedMessage,
-                        GetCarFromRegistryResponse
-                                .builder()
-                                .exists(false)
-                                .build()
-                );
-
-            }
+                receivedMessage,
+                RegisterCarIfNotExistsResponse
+                    .builder()
+                    .carRegistrationState(CarRegistrationState.REGISTERED)
+                    .car(request.getCar())
+                    .build());
         }
     }
 
@@ -188,35 +146,35 @@ public class ParkingPersistenceAgent extends ManagedAgent {
 
         if (parkingSessionOptional.isPresent()) {
             sendResponseToCoordinator(message, GetParkingSessionResponse
-                    .builder()
-                    .session(parkingSessionOptional.get())
-                    .exists(true)
-                    .build());
+                .builder()
+                .session(parkingSessionOptional.get())
+                .exists(true)
+                .build());
         } else {
             sendResponseToCoordinator(message, GetParkingSessionResponse
-                    .builder()
-                    .exists(false)
-                    .build());
+                .builder()
+                .exists(false)
+                .build());
         }
     }
 
     private void handleGetClientFromRegistryRequest(final ACLMessage message, final GetClientFromRegistryRequest request) {
         if (clientDatabase.containsKey(request.getId())) {
             sendResponseToCoordinator(
-                    message,
-                    GetClientFromRegistryResponse
-                            .builder()
-                            .exists(true)
-                            .client(clientDatabase.get(request.getId()))
-                            .build()
+                message,
+                GetClientFromRegistryResponse
+                    .builder()
+                    .exists(true)
+                    .client(clientDatabase.get(request.getId()))
+                    .build()
             );
         } else {
             sendResponseToCoordinator(
-                    message,
-                    GetClientFromRegistryResponse
-                            .builder()
-                            .exists(false)
-                            .build()
+                message,
+                GetClientFromRegistryResponse
+                    .builder()
+                    .exists(false)
+                    .build()
             );
         }
     }
@@ -244,35 +202,36 @@ public class ParkingPersistenceAgent extends ManagedAgent {
             }
 
             expenses.add(Expense
-                    .builder()
-                    .type(ExpenseType.RECHARGING_OR_REFUELING)
-                    .amount(amount)
-                    .build());
+                .builder()
+                .type(ExpenseType.RECHARGING_OR_REFUELING)
+                .amount(amount)
+                .build());
         }
 
         if (session.getWashing() == TaskStatus.COMPLETED || session.getWashing() == TaskStatus.ONGOING) {
             expenses.add(Expense
-                    .builder()
-                    .type(ExpenseType.WASHING)
-                    .amount(WASHING_COST)
-                    .build());
+                .builder()
+                .type(ExpenseType.WASHING)
+                .amount(WASHING_COST)
+                .build());
         }
 
-        final double amount = ((Duration.between(session.getParkedSince(), LocalDateTime.now()).toSeconds() / TIME_SCALING) / 60) * COST_PER_MINUTE;
+        final double amount = (Math.max(Duration.between(session.getParkedSince(), LocalDateTime.now()).toMillis() / TIME_SCALING,
+            1800000) / 1000 / 60) * COST_PER_MINUTE;
         expenses.add(Expense
-                .builder()
-                .type(ExpenseType.PARKING)
-                .amount(amount)
-                .build());
+            .builder()
+            .type(ExpenseType.PARKING)
+            .amount(amount)
+            .build());
 
         session.setExpenses(expenses);
 
         sendResponseToCoordinator(
-                message,
-                FinalizeParkingExpensesResponse
-                        .builder()
-                        .parkingSession(session)
-                        .build()
+            message,
+            FinalizeParkingExpensesResponse
+                .builder()
+                .parkingSession(session)
+                .build()
         );
     }
 
@@ -281,29 +240,29 @@ public class ParkingPersistenceAgent extends ManagedAgent {
 
         if (session.isPresent()) {
             session.get()
-                    .setWashing(request.getSession().getWashing());
+                   .setWashing(request.getSession().getWashing());
             session.get()
-                    .setRefuelingOrRecharging(request.getSession().getRefuelingOrRecharging());
+                   .setRefuelingOrRecharging(request.getSession().getRefuelingOrRecharging());
 
             sendResponseToCoordinator(message, UpdateTaskStatusResponse
-                    .builder()
-                    .parkingSession(session.get())
-                    .build());
+                .builder()
+                .parkingSession(session.get())
+                .build());
         }
     }
 
     private void handleRegisterNewClientRequest(final ACLMessage message, final RegisterNewClientRequest request) {
         final Client client = request.getClient()
-                .toBuilder()
-                .id(UUID.randomUUID())
-                .cars(new LinkedList<>())
-                .build();
+                                     .toBuilder()
+                                     .id(UUID.randomUUID())
+                                     .cars(new LinkedList<>())
+                                     .build();
         clientDatabase.put(client.getId(), client);
 
         sendResponseToCoordinator(message, RegisterNewClientResponse
-                .builder()
-                .identifiedClient(client)
-                .build());
+            .builder()
+            .identifiedClient(client)
+            .build());
     }
 
 
@@ -313,17 +272,17 @@ public class ParkingPersistenceAgent extends ManagedAgent {
 
     private Optional<ParkingSession> getParkingSession(final UUID session) {
         return parkSessionMap
-                .values()
-                .stream()
-                .filter(Objects::nonNull)
-                .filter(parkingSession -> parkingSession.getId().equals(session))
-                .findFirst();
+            .values()
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(parkingSession -> parkingSession.getId().equals(session))
+            .findFirst();
     }
 
     private Optional<Car> getCarByLicensePlate(final String licensePlate) {
         return io.vavr.collection.HashMap.ofAll(carDatabase)
-                .get(licensePlate)
-                .toJavaOptional();
+                                         .get(licensePlate)
+                                         .toJavaOptional();
     }
 
 
@@ -333,7 +292,7 @@ public class ParkingPersistenceAgent extends ManagedAgent {
 
     private Optional<Client> getClient(final UUID id) {
         return io.vavr.collection.HashMap.ofAll(clientDatabase)
-                .get(id)
-                .toJavaOptional();
+                                         .get(id)
+                                         .toJavaOptional();
     }
 }

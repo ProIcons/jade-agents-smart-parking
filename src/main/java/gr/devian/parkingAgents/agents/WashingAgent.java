@@ -15,18 +15,18 @@ public class WashingAgent extends ManagedAgent {
     protected void setupInternal() {
         addInitBehavior(this::announceToCoordinator);
         addCyclicBehavior(
-                Handle(WashingRequest.class, this::handleWashingRequest)
+            Handle(WashingRequest.class, this::handleWashingRequest)
         );
     }
 
     private void handleWashingRequest(final ACLMessage receivedMessage, final WashingRequest request) {
         sleepRandom(10000, 30000);
         sendResponseToCoordinator(
-                receivedMessage,
-                WashingResponse
-                        .builder()
-                        .status(TaskStatus.COMPLETED)
-                        .build()
+            receivedMessage,
+            WashingResponse
+                .builder()
+                .status(TaskStatus.COMPLETED)
+                .build()
         );
     }
 

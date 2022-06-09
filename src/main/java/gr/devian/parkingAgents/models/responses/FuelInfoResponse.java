@@ -1,4 +1,4 @@
-package gr.devian.parkingAgents.models.requests;
+package gr.devian.parkingAgents.models.responses;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -9,6 +9,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @Builder(toBuilder = true)
-public class ModelAndBrandDetectionRequest extends BaseRequest {
-    private byte[] carImage;
+public class FuelInfoResponse extends BaseResponse {
+    private Integer capacity;
+    private double level;
 }

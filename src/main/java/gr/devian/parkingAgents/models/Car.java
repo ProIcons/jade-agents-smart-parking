@@ -1,6 +1,7 @@
 package gr.devian.parkingAgents.models;
 
 import lombok.*;
+import lombok.experimental.Accessors;
 
 import java.awt.*;
 import java.io.Serializable;
@@ -11,6 +12,8 @@ import java.util.UUID;
 @EqualsAndHashCode
 @Builder(toBuilder = true)
 @ToString
+@Accessors(chain = true)
+@Setter
 public class Car implements Serializable {
     private UUID id;
     private String licensePlate;
@@ -19,15 +22,9 @@ public class Car implements Serializable {
     private CarType type;
     private String brand;
     private String model;
-
-    @Getter(AccessLevel.NONE)
     private Integer fuelTankCapacity;
-    @Getter(AccessLevel.NONE)
     private Double fuelLevel;
-
-    @Getter(AccessLevel.NONE)
     private Integer batteryCapacity;
-    @Getter(AccessLevel.NONE)
     private Double batteryLevel;
     @Singular
     @ToString.Exclude

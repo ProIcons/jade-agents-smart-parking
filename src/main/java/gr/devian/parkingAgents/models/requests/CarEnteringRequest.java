@@ -16,15 +16,12 @@ public class CarEnteringRequest extends BaseRequest {
 
     private Client client;
     private UUID clientId;
+    private UUID carId;
 
     private boolean requestedWashing;
     private boolean requestedRechargingOrRefueling;
 
     public boolean isNewClient() {
         return client != null;
-    }
-
-    public boolean isRegisteredClient() {
-        return clientId != null;
     }
 }

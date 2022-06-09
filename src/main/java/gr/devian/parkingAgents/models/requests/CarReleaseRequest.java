@@ -9,6 +9,5 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @Builder(toBuilder = true)
-public class LicenseDetectionRequest extends BaseRequest {
-    private byte[] carImage;
+public class CarReleaseRequest extends BaseRequest {
 }

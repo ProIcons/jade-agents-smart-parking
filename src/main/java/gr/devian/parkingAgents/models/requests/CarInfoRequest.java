@@ -1,4 +1,4 @@
-package gr.devian.parkingAgents.models.responses;
+package gr.devian.parkingAgents.models.requests;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -9,6 +9,5 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @Builder(toBuilder = true)
-public class LicenseDetectionResponse extends BaseResponse {
-    private String licensePlate;
+public class CarInfoRequest extends BaseRequest {
 }

@@ -31,6 +31,6 @@ public class ParkingSession implements Serializable {
         }
 
         return expenses.stream().mapToDouble(Expense::getAmount)
-                .sum();
+                       .sum();
     }
 }
